@@ -1,0 +1,4 @@
+#!/command/execlineb -P
+with-contenv
+s6-notifyoncheck -d
+/usr/sbin/cron -f -l -L 15

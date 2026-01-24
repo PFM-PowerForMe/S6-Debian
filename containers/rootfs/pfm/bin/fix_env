@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+# tools
+[ -d "/pfm/bin" ] && find /pfm/bin -type f -exec chmod 0755 {} + 2>/dev/null || true;
+
+# s6
+[ -d "/etc/s6-overlay/s6-rc.d" ] && find /etc/s6-overlay/s6-rc.d -type f -exec chmod 0755 {} + 2>/dev/null || true;
+[ -d "/etc/s6-overlay/scripts" ] && find /etc/s6-overlay/scripts -type f -exec chmod 0755 {} + 2>/dev/null || true;
+[ -d "/etc/s6-overlay/init-data" ] && find /etc/s6-overlay/init-data -type f -exec chmod 0755 {} + 2>/dev/null || true;
+
+# php
+[ -d "/var/www" ] && chown www-data:www-data -R /var/www 2>/dev/null || true
+[ -d "/var/www/html" ] && rm -rf /var/www/html || true
+
+# apt
+apt-get clean
+rm -rf /var/lib/apt/lists/*
+
+# cron
+[ ! -f "/etc/environment" ] && touch /etc/environment && chmod 0644 /etc/environment
+for dir in d hourly daily weekly monthly yearly; do
+    CRON_DIR="/etc/cron.$dir"
+    mkdir -pv "$CRON_DIR"
+    find "$CRON_DIR" -mindepth 1 -delete 2>/dev/null || true
+done
+
+# bin
+[ -d "/usr/local/bin" ] && find /usr/local/bin -type f -exec chmod 0755 {} + 2>/dev/null || true;

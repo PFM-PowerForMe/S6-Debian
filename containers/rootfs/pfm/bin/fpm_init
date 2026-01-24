@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+set -e
+
+pkg_install() {
+    apt-get -y update
+    if [ $# -eq 0 ]; then
+        echo "❌ 未指定安装包!"
+        exit 1
+    else
+        # 核心修复点：强制非交互式处理配置文件冲突
+        DEBIAN_FRONTEND=noninteractive apt-get -y \
+            -o Dpkg::Options::="--force-confdef" \
+            -o Dpkg::Options::="--force-confold" \
+            --no-install-recommends install "$@"
+    fi
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+}
+
+system_init() {
+    pkg_install lsb-release apt-transport-https ca-certificates curl wget xz-utils net-tools findutils neovim sudo cron
+
+    touch /etc/default/locale
+
+    if [ -n "${TZ}" ]; then
+        ln -snf "/usr/share/zoneinfo/${TZ}" /etc/localtime
+        echo "${TZ}" > /etc/timezone
+    fi
+
+    sed -i 's%^\([^#]*\)\(session\s\+required\s\+pam_loginuid\.so\)$%\1#\2%' /etc/pam.d/cron
+}
+
+ACTION="${1:-init}"
+case "$ACTION" in
+    install)
+        shift
+        pkg_install "$@"
+        ;;
+    init)
+        system_init
+        ;;
+    *)
+        echo "❌ 未知指令: $ACTION"
+        echo "💡 用法提示:"
+        echo "   $0                 -> 默认执行 system_init"
+        echo "   $0 install         -> 安装默认的常用基础包"
+        echo "   $0 install <包名>  -> 扩展安装指定的包 (例如: $0 install htop git)"
+        exit 1
+        ;;
+esac

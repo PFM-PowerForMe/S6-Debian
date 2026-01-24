@@ -1,0 +1,28 @@
+name: 'PFM-S6-Container-Build'
+
+on:
+  workflow_dispatch:
+  workflow_call:
+  repository_dispatch:
+    types: [s6-build-event]
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  Call-build-workflow:
+    secrets: inherit
+    permissions:
+      contents: read
+      packages: write
+    uses: PFM-PowerForMe/PFM-Action-Public/.github/workflows/custom-container-build.yml@main
+    with:
+      build_dockerfile: S6.dockerfile
+      build_image_name: s6
+      dispatch_repos: '["${{ github.repository }}", "PFM-PowerForMe/S6-Box"]'
+      build_pull_source: false

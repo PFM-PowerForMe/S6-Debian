@@ -1,0 +1,38 @@
+#!/command/with-contenv bash
+set -e
+
+CRON_USER="$1"
+CRON_EXEC="$2"
+
+if [ -z "$CRON_USER" ] || [ -z "$CRON_EXEC" ]; then
+    exit 1
+fi
+
+CRON_DIR="/etc/cron.d"
+CRON_FILE="${CRON_DIR}/autocron_${CRON_USER}"
+
+mkdir -p "$CRON_DIR"
+touch "$CRON_FILE"
+
+set -f
+set -- $CRON_EXEC
+
+if [[ "$1" == @* ]]; then
+    SCHEDULE="$1"
+    shift 1
+else
+    SCHEDULE="$1 $2 $3 $4 $5"
+    shift 5
+fi
+
+CMD="$*"
+set +f
+
+DEBIAN_CRON_LINE="${SCHEDULE} ${CRON_USER} ${CMD}"
+
+if ! grep -F -x -q "$DEBIAN_CRON_LINE" "$CRON_FILE"; then
+    echo "$DEBIAN_CRON_LINE" >> "$CRON_FILE"
+fi
+
+chown root:root "$CRON_FILE"
+chmod 600 "$CRON_FILE"
