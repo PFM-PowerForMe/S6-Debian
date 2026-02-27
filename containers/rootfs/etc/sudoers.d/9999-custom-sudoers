@@ -1,4 +1,4 @@
-Defaults !syslog, !logfile, !log_host, !log_year, !log_subcmds, !log_passwords, !log_input, !log_output, !use_pty
+Defaults !syslog, !logfile, !log_host, !log_year, !log_input, !log_output, !use_pty
 
 root ALL=(ALL) NOPASSWD: ALL
 %www-data ALL=(ALL) NOPASSWD: ALL
